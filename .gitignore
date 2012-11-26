@@ -1,0 +1,5 @@
+config.json
+init_config.json
+*.js
+*.swp
+node_modules/
