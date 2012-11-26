@@ -1,3 +1,3 @@
-= Personal Log
+# Personal Log
 
-A small blogging System.
+A small blogging System written in coffee-script.
