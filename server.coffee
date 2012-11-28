@@ -4,6 +4,7 @@ crypto = require('crypto')
 http = require('http')
 config = require('./config.json')
 cradle = require('cradle')
+
 console.log "setting up connection @ #{config.couch_host}:#{config.couch_port}"
 con = new cradle.Connection  "http://#{config.couch_host}", config.couch_port,
   cache: true
@@ -31,7 +32,8 @@ app.configure () ->
   app.set 'view engine', 'jade'
   app.use express.favicon()
   app.use express.logger 'dev'
-  app.use express.bodyParser()
+  app.use express.bodyParser
+    uploadDir: "#{ __dirname }/tmp"
   app.use express.cookieParser config.secret_token
   app.use express.session()
   app.use express.methodOverride()
@@ -51,6 +53,44 @@ get_session = (req) ->
      current_sessions[req.signedCookies["connect.sid"]]
    else
      undefined
+
+app.post "/upload", ( req, res ) ->
+  session = get_session( req )
+  if not session?
+    for field, file of req.files
+      fs.unlink file.path
+    res.redirect "/"  
+  else
+    uploads = [ ]
+    for field, file of req.files
+      uploads.push
+        owner: session.user._id
+        path: file.path
+        name: file.name
+        mime: file.type
+        time: file.lastModifiedDate
+        hidden: yes
+        public: no
+        blog_entry: no
+        upload: yes
+    blog_db.save uploads, ( data, err ) ->
+      console.log err if err?
+    res.redirect "/user/#{session.user.name}"
+
+app.get '/file/:file', ( req, res ) ->
+  session = get_session( req )
+  blog_db.get req.param("file")
+    , ( err , data ) ->
+      console.log data
+      if err?
+        console.log err
+        res.send 404
+      else if data.hidden and ( not session or data.owner isnt session.user._id )
+        res.send 403      
+      else if not session? and not data.public
+        res.send 403  
+      else
+        res.sendfile data.path
 
 app.get '/', (req, res) ->
   session = get_session( req )
@@ -106,11 +146,12 @@ app.get '/logout', (req, res ) ->
 
 app.get '/user/:name', (req, res) ->
   session = get_session( req ) 
-  if not session?.user?.name? == req.param("name")
-    res.status 403 
-  else
+  if  session?.user?.name is req.param("name")
     res.render "user",
       user: session.user
+      notify: undefined
+  else
+    res.redirect "/"
 ###
 # TODO implement
 app.get '/users', (req, res) ->

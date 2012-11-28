@@ -2,5 +2,19 @@ body {
   padding: 50px;
   font: 14px Volkorn, Helvetica, Arial, sans-serif; }
 
+header {
+  position: fixed;
+  border: 1px solid #63C424;
+  background-color: #386E14;
+  top: 0;
+  left: 0;
+}
+
+header a {
+  color: #0d1905;
+  font-size: 40px;
+}
+
 a {
-  color: #00B7FF; }
+  color: #00B7FF; 
+}

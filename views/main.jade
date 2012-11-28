@@ -1,33 +1,16 @@
-extends layout
-block login
-  - if ( user )
-    - var userlink = "/user/" + user.name  
-    a( href=userlink )= user.name 
-    a( href="/logout" ) Logout
-  -  else 
-    form#login( action='login', method='POST', name='user_data' )
-      label Username
-      input( type='text', name='user_data[name]' )
-      label Password
-      input( type='password', name='user_data[pass]' )
-      button Login
-
-  
-block notify
-  -if ( notify )
-    #notify= notify
-
-block post_input
-  -if ( user && user.is_author ) 
-    form#newPostForm( action="/post", method="POST", name="blog_post"  )
-      textarea#newPost(name='blog_post[text]') write something
-      button#commitPost Commit
-
-
-
-block post_list
-  #posts
-  each post in posts
-    .post
-      p= post.value.text
-      p= post.value.time
+doctype 5
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    include head  
+    -if ( user && user.is_author ) 
+      form#newPostForm( action="/post", method="POST", name="blog_post"  )
+        textarea#newPost(name='blog_post[text]') write something
+        button#commitPost Commit
+    #posts
+      each post in posts
+        .post
+          p= post.value.text
+          p= post.value.time

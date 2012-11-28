@@ -69,7 +69,14 @@ db_blog.create ( err, res ) ->
           } 
         }
         )""" 
-
+      uploads:
+        map: """(
+        function ( doc ) {
+          if (doc.upload && doc.upload === true ){
+            emit( doc._id, doc );
+          }
+        }
+        )""" 
 console.log "done."
 
 db_users_name = "blog_#{config.my_name}_users"
