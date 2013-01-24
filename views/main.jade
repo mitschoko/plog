@@ -3,14 +3,32 @@ html
   head
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css')
+    
+    script(type='text/javascript', src='/javascripts/jquery-1.8.3.min.js')
+    :coffeescript
+      $(document).ready ->
+        $("#newButton").click ->
+          $("#blackout").removeClass("invisible")
+          $("#controls").hide()
+          $("#toggleControlPoints").hide()
+          $("#blackout").click ->
+            $("#newPost").removeClass( "using" )
+            $("#blackout").addClass("invisible")
+            $("#controls").show()
+            $("#toggleControlPoints").show()
+          $("#newPost").addClass( "using" )
   body
-    include head  
-    -if ( user && user.is_author ) 
-      form#newPostForm( action="/post", method="POST", name="blog_post"  )
-        textarea#newPost(name='blog_post[text]') write something
+    include head 
+    #blackout.invisible
+    -if ( user && user.is_author )
+      button#newButton New Post
+      form#newPost( action="/post", method="POST", name="blog_post"  )
+        textarea(name='blog_post[text]') write something
         button#commitPost Commit
+    #postSmile
+      include smile
     #posts
       each post in posts
         .post
-          p= post.value.text
-          p= post.value.time
+          p.text= post.value.text
+          p.time= post.value.time

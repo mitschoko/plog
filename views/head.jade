@@ -1,0 +1,11 @@
+header
+  #notify
+    -if ( notify )
+      p= notify
+  -if (! user )
+   form( action="/login", method="POST" )
+     input( name="user_data[name]"  )
+     input( type="password", name="user_data[pass]"  ) 
+     input( type="submit" ) Login
+  -else
+     a( href="/user/" + user.name )= user.name

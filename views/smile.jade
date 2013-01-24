@@ -1,0 +1,68 @@
+svg#SmileyEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
+  g( viewBox = "0 0 300 300" )
+    circle( r=144, cx=150, cy=150, stroke="none", fill="yellow", stroke="black", stroke-width=8 )
+    g
+      g.eye.left
+        circle( r=30, cx=100, cy=100, stroke="black", stroke-width=5, fill="white" )
+        circle( r=10, cx=100, cy=100, fill="black" )
+      g.eye.right
+        circle( r=30, cx=200, cy=100, stroke="black", stroke-width=5, fill="white" )
+        circle( r=10, cx=200, cy=100, fill="black" )
+    g
+      path.mouth.outlines( d="M 30,180 C 100,300 200,300 270,180 z", fill="white", stroke="black", stroke-width=7 )
+    g#controls
+      circle.control.mouth.right.end( cx=30, cy=180,  r=8,  fill="red", stroke-width=3, stroke="white" )
+      circle.control.mouth.right.down.ctr( cx=100, cy=300,  r=8,  fill="red", stroke-width=3, stroke="white"     ) 
+      circle.control.mouth.left.down.ctr( cx=200, cy=300,   r=8,  fill="red", stroke-width=3, stroke="white"  )
+      circle.control.mouth.left.end( cx=270, cy=180,  r=8,  fill="red", stroke-width=3, stroke="white" )
+      circle.control.mouth.right.up.ctr( cx=100, cy=180,  r=8,  fill="red", stroke-width=3, stroke="white"     ) 
+      circle.control.mouth.left.up.ctr( cx=200, cy=180,   r=8,  fill="red", stroke-width=3, stroke="white"  )
+button#toggleControlPoints Hide/Show Control Points
+
+:coffeescript
+  $("#toggleControlPoints").click -> $(".control").toggle()
+  dragging = undefined
+  lastX = undefined
+  lastY = undefined
+  getCP = ( query ) ->
+    "#{$(query).attr("cx")},#{$(query).attr("cy")}"
+  CPcontext = ( context ) ->
+    ( query ) ->
+      getCP("#{context}#{query}")
+  mouth = CPcontext("circle.control.mouth")
+  redrawSmile = ->
+    $("path.mouth.outlines").attr
+      d: "M #{ (start = mouth('.right.end')) } C #{ mouth('.right.down.ctr')} #{ mouth('.left.down.ctr') } #{ mouth('.left.end') } #{ mouth('.left.up.ctr') } #{ mouth('.right.up.ctr') } #{start}  z"
+
+  $(".control").mouseover (evt) ->
+    $(@).attr 
+      r: 12
+
+  $(".control").mousedown (evt) ->
+     lastX = evt.clientX
+     lastY = evt.clientY
+     if not dragging?
+       dragging =  @ 
+  $(".control").mousemove (evt) ->
+     nowX = evt.clientX
+     nowY = evt.clientY
+     if @ is dragging
+       $(@).attr
+          cx: Number($(@).attr('cx')) + (nowX - lastX)
+          cy: Number($(@).attr('cy')) + (nowY - lastY)
+       redrawSmile()
+     lastX = nowX
+     lastY = nowY
+  
+
+  release = ( element ) ->
+    $( element  ).attr 
+      r: 8
+    if element is dragging
+      dragging = undefined
+
+  $(".control").mouseout ->
+    release( @ )
+  $(".control").mouseup ->
+    release( @ )
+
