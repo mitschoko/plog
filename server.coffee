@@ -127,7 +127,6 @@ app.post '/login', (req, res) ->
     if err? or data.length isnt 1
       res.redirect '/' 
     else
-      console.log( data )
       md5 = crypto.createHash('md5')
       md5.update( req.param("user_data").pass )
       md5.update( data[0].value.salt ) 
