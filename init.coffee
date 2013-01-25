@@ -1,7 +1,5 @@
 fs = require("fs")
-
-genKey = require( "./genkey.coffee")
-
+crypto = require("crypto")
 init_config = require( "./init_config.json" )
 
 needed = [ 
@@ -31,8 +29,7 @@ if not config_good
   process.exit( 1 )
 
 
-config.secret_token = genKey.genKey(30)
-config.salt = genKey.genKey( 15 )
+config.secret_token = crypto.randomBytes( 256 ).toString()
 
 console.log "Writing config.json..."
 fs.writeFileSync( "config.json", JSON.stringify( config ) )
@@ -41,7 +38,6 @@ console.log "done."
 
 
 cradle = require("cradle")
-crypto = require('crypto')
 
 
 con = new cradle.Connection  "http://#{config.couch_host}", config.couch_port,
@@ -116,12 +112,14 @@ db_users.create (err, res ) ->
       console.log "creating user #{ config.my_name }"
       md5 = crypto.createHash('md5')
       md5.update( config.init_pass )
-      md5.update( config.salt )
+      salt = crypto.randomBytes( 64 ).toString()
+      md5.update( salt )
       phash = md5.digest 'hex'
       db_users.save 
         name: config.my_name 
         valid_user: yes
         pass: phash
+        salt: salt
         change_pass: yes 
         is_author: yes
         is_admin: yes

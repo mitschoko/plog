@@ -12,8 +12,9 @@ svg#SmileyEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
         g.center
           circle.iris(  r=14, cx=200, cy=100, fill="#000000", stroke-width=2, stroke="black" )
           circle.pupil( r=8, cx=200, cy=100, fill="black" )
-    g
-      path.mouth.outlines( d="M 30,180 C 100,300 200,300 270,180 z", fill="white", stroke="black", stroke-width=7 )
+    g#mouth
+      path.outline( d="M 30,180 C 100,300 200,300 270,180 z", fill="white", stroke="black", stroke-width=7 )
+    g#hair
     g#controls
       circle.control.mouth.right.end( cx=30, cy=180,  r=8,  fill="red", stroke-width=3, stroke="white" )
       circle.control.mouth.right.down.ctr( cx=100, cy=300,  r=8,  fill="red", stroke-width=3, stroke="white"     ) 
@@ -36,8 +37,37 @@ svg#SmileyEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
        input#editRightEyePosition( type="checkbox" )
   .controlCollection
      button#toggleControlPoints Edit Mouth
+  .controlCollection
+     label( for="hairColor" ) Draw Hair
+     .controlCollection
+       input#hairColor( type="color" )
+       input#drawHair( type="checkbox" )
 
 :coffeescript
+  ### 
+  test_intersect = (  a, b )
+    z = a.x * b.y - a.y * b.x
+    return undefined if z < 0.0001
+    c = 
+      x: (a.y - b.y) / z
+      y: (a.x - b.x) / z
+    xr = if a.x < b.x then [a.x, b.x] else [b.x, a.x]
+    yr = if a.y < b.y then [a.y, b.y] else [b.y, a.y]
+    if (xr[0] <= c.x <= xr[1]) and (yr[0] <= c.y <= yr[1])
+      c
+    else
+      undefined
+
+  hairpath = []
+  hairpart = undefiend
+  $("#SmileyEditor").mousedown ->
+    if $("#drawHair:checked").length isnt 0
+      new_c:
+        x: event.clientX
+        y: event.clientY
+      for i, old_c of hairpath
+        if 
+  ###       
   $("#changeEyeColor").change -> $(".eye .center .iris").attr "fill", $("#changeEyeColor").val() 
   $("#toggleControlPoints").click -> $(".control").toggle()
 
@@ -110,12 +140,12 @@ svg#SmileyEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
       getCP("#{context}#{query}")
   mouth = CPcontext("circle.control.mouth")
   redrawSmile = ->
-    $("path.mouth.outlines").attr
+    $("#mouth .outline").attr
       d: "M #{ (start = mouth('.right.end')) } C #{ mouth('.right.down.ctr')} #{ mouth('.left.down.ctr') } #{ mouth('.left.end') } #{ mouth('.left.up.ctr') } #{ mouth('.right.up.ctr') } #{start}  z"
 
   $(".control").mouseover (evt) ->
     $(@).attr 
-      r: 12
+      r: 16
 
   $(".control").mousedown (evt) ->
      lastX = evt.clientX

@@ -27,7 +27,7 @@ console.log "Done"
 app = express()
 
 app.configure () ->
-  app.set 'port', config.port | 3000
+  app.set 'port', 3000
   app.set 'views', __dirname + '/views'
   app.set 'view engine', 'jade'
   app.use express.favicon()
@@ -127,9 +127,10 @@ app.post '/login', (req, res) ->
     if err? or data.length isnt 1
       res.redirect '/' 
     else
+      console.log( data )
       md5 = crypto.createHash('md5')
       md5.update( req.param("user_data").pass )
-      md5.update( config.salt ) 
+      md5.update( data[0].value.salt ) 
       phash = md5.digest 'hex'
       if data[0].value.pass is phash
         current_sessions[ req.signedCookies["connect.sid"] ] =
@@ -165,11 +166,15 @@ app.post '/resetpass', (req, res) ->
   res.redirect '/' if  not req.param("user_data")?.pass1? or not req.param("user_data")?.pass2? or not req.param("user_data").pass1 is req.param("user_data").pass2 
   md5 = crypto.createHash('md5')
   md5.update( req.param("user_data").pass1 )
-  md5.update( config.salt ) 
+  salt = crypto.randomBytes( 64 ).toString()
+  md5.update( salt ) 
   phash = md5.digest 'hex'
-  user_db.merge session.user._id , pass: phash, (err, data ) ->
-     console.log err if err?
-     res.redirect "/"
+  user_db.merge session.user._id , 
+    pass: phash
+    salt: salt
+  , (err, data ) ->
+    console.log err if err?
+    res.redirect "/"
 
 
 

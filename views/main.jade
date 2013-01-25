@@ -7,19 +7,9 @@ html
     script(type='text/javascript', src='/javascripts/jquery-1.8.3.min.js')
     :coffeescript
       $(document).ready ->
-        $("#newButton").click ->
-          $("#blackout").removeClass("invisible")
-          $("#controls").hide()
-          $("#toggleControlPoints").hide()
-          $("#blackout").click ->
-            $("#newPost").removeClass( "using" )
-            $("#blackout").addClass("invisible")
-            $("#controls").show()
-            $("#toggleControlPoints").show()
-          $("#newPost").addClass( "using" )
+        $("#newButton").click -> $("#newPost").toggleClass( "using" )
   body
     include head 
-    #blackout.invisible
     -if ( user && user.is_author )
       button#newButton New Post
       form#newPost( action="/post", method="POST", name="blog_post"  )
