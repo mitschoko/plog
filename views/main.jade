@@ -2,23 +2,20 @@ doctype 5
 html
   head
     title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-    
+    link(rel='stylesheet', href='/stylesheets/style.css') 
     script(type='text/javascript', src='/javascripts/jquery.min.js')
     :coffeescript
       $(document).ready ->
-        $("#newButton").click -> $("#newPost").toggleClass( "using" )
+        $("#saySomething").click -> $("#speak").toggleClass( "using" )
   body
     include head 
     -if ( user && user.is_author )
-      button#newButton New Post
-      form#newPost( action="/post", method="POST", name="blog_post"  )
-        textarea(name='blog_post[text]') write something
-        button#commitPost Commit
-    #postSmile
-      include smile
-      -if ( user && user.is_author )
-         include smileEditor  
+      #postSmile
+        include smileEditor  
+        include smile
+      button#saySomething Speak!
+      #speak
+        textarea Hallo Welt
     #posts
       each post in posts
         .post
