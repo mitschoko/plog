@@ -17,6 +17,8 @@ html
         button#commitPost Commit
     #postSmile
       include smile
+      -if ( user && user.is_author )
+         include smileEditor  
     #posts
       each post in posts
         .post

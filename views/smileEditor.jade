@@ -1,0 +1,124 @@
+#EditControl
+  .controlCollection
+     label( for="editEyeColor" ) Edit Eye Color
+     br
+     input#changeEyeColor( type="color" )
+     .controlCollection
+       span Edit Eye Position
+       br
+       label( for="editLeftEyePosition") left
+       input#editLeftEyePosition( type="checkbox" )
+       label( for="editRightEyePosition") right
+       input#editRightEyePosition( type="checkbox" )
+  .controlCollection
+     button#toggleControlPoints Edit Mouth
+  .controlCollection
+     label( for="hairColor" ) Draw Hair
+     .controlCollection
+       input#hairColor( type="color" )
+       input#drawHair( type="checkbox" )
+
+:coffeescript
+  $("#changeEyeColor").change -> $(".eye .center .iris").attr "fill", $("#changeEyeColor").val() 
+
+  G =  ->
+    document.createElementNS("http://www.w3.org/2000/svg", "g")
+
+  CP = (  x, y ) ->
+    obj = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    obj.setAttributeNS(null, "cx", x)
+    obj.setAttributeNS(null, "cy", y)
+    obj.setAttributeNS(null, "r",  0.02)
+    obj.setAttributeNS(null, "stroke", "white")
+    obj.setAttributeNS(null, "stroke-width", 0.01)
+    obj.setAttributeNS(null, "fill", "red")
+    obj
+
+  class PathElement
+    constructor: ( @parent, data ) ->
+      @control = ""
+      if data.match /^\d(\.\d*)?,\d(\.\d*)?$/
+        c = data.split(",")      
+        @handle =  CP( Number(c[0]), Number(c[1])  ) 
+        $(@parent.visual).append @handle
+        $(@handle).mouseover =>
+          $(@handle).attr 
+            r: 0.04
+        @last =
+          x: 0
+          y: 0   
+        @dragging = off
+        $(@handle).mousedown =>
+          @last.x = event.clientX
+          @last.y = event.clientY
+          @dragging = on
+        $(@handle).mousemove =>
+          if @dragging
+            now = 
+              x: event.clientX
+              y: event.clientY
+            $(@handle).attr
+              cx: Number($(@handle).attr('cx')) + (now.x - @last.x) / @parent.scale
+              cy: Number($(@handle).attr('cy')) + (now.y - @last.y) / @parent.scale
+            @last = now
+            @parent.redraw()
+        $(@handle).bind "mouseup mouseout", =>
+          $(@handle).attr "r", 0.02
+          @dragging  = off
+      else
+        @control = data
+    read: ->
+      if @handle
+        "#{$(@handle).attr('cx')},#{$(@handle).attr('cy')}"
+      else
+        @control
+
+  class PathControl
+    constructor: ( @element, @scale ) ->
+      @visual = G()
+      $(@element).parent().append( @visual )
+      d = $(@element).attr "d"
+      @data = ( new PathElement( @, i ) for i in (d.split(" ")) )
+    redraw: ->
+      $(@element).attr "d", (element.read() for element in  @data).join(" ")
+
+  MouthOutlineControl = new PathControl(".mouth .outline", 300)
+  $(MouthOutlineControl.visual).hide()
+  $("#toggleControlPoints").click -> $(MouthOutlineControl.visual).toggle()
+
+  lastX = undefined
+  lastY = undefined
+  dragging = undefined
+
+  $(".eyes").css "pointer-events", "all"
+
+  moveEye = ( side, x, y ) ->
+    center_x = Number($(".eyes .#{side} .center .iris").attr( "cx" ))
+    center_y = Number($(".eyes .#{side} .center .iris").attr( "cy" ))
+    eye_x = Number($(".eyes .#{side} .ball").attr( "cx" ))
+    eye_y = Number($(".eyes .#{side} .ball").attr( "cy" ))
+    dist =  Math.sqrt( Math.pow( center_x - eye_x + x , 2 ) + Math.pow( center_y - eye_y + y, 2 ) )
+    max_dist =  Math.abs( Number($(".eyes .#{side} .ball").attr( "r" )) - Number($(".eyes .#{side} .center .iris").attr("r") ))
+    if dist <= max_dist
+      $(".eyes .#{side} .center *").each (idx, el) -> 
+        $(el).attr 
+          cx: center_x + x 
+          cy: center_y + y 
+  movingEye = false
+  $(".eyes").mousedown ->
+    lastX = event.clientX
+    lastY = event.clientY  
+    movingEye = true
+  $(".eyes").mousemove ->
+    if movingEye
+      dx = (event.clientX - lastX) / 300
+      dy = (event.clientY - lastY) / 300
+      moveEye "left",  dx, dy if $("#editLeftEyePosition:checked").length isnt 0
+      moveEye "right", dx, dy if $("#editRightEyePosition:checked").length isnt 0
+    lastX = event.clientX
+    lastY = event.clientY
+
+  $(".eyes").bind "mouseout mouseup", -> movingEye = false 
+
+
+   
