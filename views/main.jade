@@ -4,8 +4,18 @@ html
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css') 
     script(type='text/javascript', src='/javascripts/jquery.min.js')
+    script(type='text/javascript', src='/faye.js')
     :coffeescript
       $(document).ready ->
+        faye = new Faye.Client "/faye" 
+        faye.subscribe "/update/posts", ( msg ) ->
+          jQuery.ajax
+            url: "/post/#{msg}"
+            contentType: "text/html"
+            success: ( data ) ->
+              $("#posts").prepend data
+              $("#newPost .bubble").val "" 
+              $("#newPost .speak").addClass("unused")
         $("#saySomething").click -> $("#newPost .speak").toggleClass( "unused" )
         $("#sendPost").click ->
           smile = saveSmile()
@@ -31,13 +41,4 @@ html
 
     #posts
       each post in posts
-        .post
-          h2.time= post.value.time
-          - var smile = post.value.smile ;
-          include smile
-          - if ( typeof smile.text !== 'undefined' )
-            .speak
-              svg.arrow
-                polyline( stroke="black", stroke-width=2, fill="white", points="63,40 0,0 63,60")
-              .bubble= smile.text
-        .cleafix
+        include post

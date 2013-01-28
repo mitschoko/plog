@@ -4,6 +4,9 @@ crypto = require('crypto')
 http = require('http')
 config = require('./config.json')
 cradle = require('cradle')
+faye = require('faye')
+
+
 
 console.log "setting up connection @ #{config.couch_host}:#{config.couch_port}"
 con = new cradle.Connection  "http://#{config.couch_host}", config.couch_port,
@@ -25,6 +28,9 @@ user_db = con.database user_db_name
 console.log "Done"
 
 app = express()
+bayeux = new faye.NodeAdapter
+  mount: '/faye' 
+  timeout: 45
 
 app.configure () ->
   app.set 'port', 3000
@@ -96,7 +102,7 @@ app.get '/', (req, res) ->
   session = get_session( req )
   user = if session?.user? then session.user else undefined
   blog_db.view 'blog/byTime',
-    limit: 3
+    limit: 5
     descending: true  
     ,( err, data ) ->
       console.log err if err?
@@ -106,8 +112,13 @@ app.get '/', (req, res) ->
         user: user
         notify: undefined
 
+app.get '/post/:id', ( req, res ) ->
+  blog_db.get req.param("id"), ( err, data ) ->
+    console.log err if err?
+    res.render "post", 
+      post: data
+
 app.post '/post', ( req, res ) ->
-  console.log( req.param( "smile" ) ) 
   session = get_session( req )
   res.redirect '/' if not session?.user?.is_author
   entry = 
@@ -117,6 +128,7 @@ app.post '/post', ( req, res ) ->
   blog_db.save entry, ( err, data ) ->
     if err?
       console.log err
+    bayeux.getClient().publish "/update/posts", data._id
     res.redirect '/'  if data.ok
 
 
@@ -178,5 +190,6 @@ app.post '/resetpass', (req, res) ->
 
 
 
-http.createServer(app).listen app.get('port'), () ->
+httpserver = http.createServer(app).listen app.get('port'), () ->
   console.log "Blog running on #{ app.get('port') }"
+bayeux.attach httpserver
