@@ -107,10 +107,11 @@ app.get '/', (req, res) ->
         notify: undefined
 
 app.post '/post', ( req, res ) ->
+  console.log( req.param( "smile" ) ) 
   session = get_session( req )
   res.redirect '/' if not session?.user?.is_author
   entry = 
-    text: req.param("blog_post").text 
+    smile: req.param( "smile" )
     time: Date()
     block_entry: yes
   blog_db.save entry, ( err, data ) ->

@@ -6,18 +6,38 @@ html
     script(type='text/javascript', src='/javascripts/jquery.min.js')
     :coffeescript
       $(document).ready ->
-        $("#saySomething").click -> $("#speak").toggleClass( "using" )
-  body
+        $("#saySomething").click -> $("#newPost .speak").toggleClass( "unused" )
+        $("#sendPost").click ->
+          smile = saveSmile()
+          smile.text = $("#newPost .speak textarea").val() if not $("#postText.speak").hasClass("unused")
+          console.log smile
+          $.ajax 
+            url: "/post"
+            type: "POST"
+            data:
+              smile: smile
     include head 
     -if ( user && user.is_author )
-      #postSmile
-        include smileEditor  
+      #newPost.post
+        include smileEditor
         include smile
-      button#saySomething Speak!
-      #speak
-        textarea Hallo Welt
+        #postText.speak.unused
+          svg.arrow
+            polyline( stroke="black", stroke-width=2, fill="white", points="63,40 0,0 63,60") 
+          textarea.bubble
+        .postControls
+          button#saySomething Speak!
+          button#sendPost Commit 
+
     #posts
       each post in posts
         .post
-          p.text= post.value.text
-          p.time= post.value.time
+          h2.time= post.value.time
+          - var smile = post.value.smile ;
+          include smile
+          - if ( typeof smile.text !== 'undefined' )
+            .speak
+              svg.arrow
+                polyline( stroke="black", stroke-width=2, fill="white", points="63,40 0,0 63,60")
+              .bubble= smile.text
+        .cleafix

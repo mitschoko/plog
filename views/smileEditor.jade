@@ -15,11 +15,23 @@
   .unfolder  V
 script( type="text/javascript", src="/javascripts/PathControl.js" )
 :coffeescript
+  window.saveSmile = ( context, data ) ->
+    data = 
+      leftEye:
+        x: $("#newPost .smile .left .iris").attr("cx")
+        y: $("#newPost .smile .left .iris").attr("cy")
+        fill: $("#newPost .smile .left .iris").attr("fill")
+      rightEye:         
+        x: $("#newPost .smile .right .iris").attr("cx")
+        y: $("#newPost .smile .right .iris").attr("cy")
+        fill: $("#newPost .smile .right .iris").attr("fill")
+      mouth:
+        outline: $("#newPost .smile .outline").attr( "d" )
   $(document).ready ->
     $("#changeEyeColor").change ->
-      $(".eyes .left .center .iris").attr "fill", $("#changeEyeColor").val() if $("#editLeftEye:checked").length isnt 0
-      $(".eyes .right .center .iris").attr "fill", $("#changeEyeColor").val() if $("#editRightEye:checked").length isnt 0
-    MouthOutlineControl = new PathControl(".mouth .outline", 300)
+      $("#newPost .smile .left .iris" ).attr "fill", $("#changeEyeColor").val() if $("#editLeftEye:checked").length isnt 0
+      $("#newPost .smile .right .iris").attr "fill", $("#changeEyeColor").val() if $("#editRightEye:checked").length isnt 0
+    MouthOutlineControl = new PathControl("#newPost .smile .outline", 300)
     $(MouthOutlineControl.visual).hide()
     $("#toggleControlPoints").click -> $(MouthOutlineControl.visual).toggle()
   
@@ -30,14 +42,14 @@ script( type="text/javascript", src="/javascripts/PathControl.js" )
     $(".eyes").css "pointer-events", "all"
 
     moveEye = ( side, x, y ) ->
-      center_x = Number($(".eyes .#{side} .center .iris").attr( "cx" ))
-      center_y = Number($(".eyes .#{side} .center .iris").attr( "cy" ))
-      eye_x = Number($(".eyes .#{side} .ball").attr( "cx" ))
-      eye_y = Number($(".eyes .#{side} .ball").attr( "cy" ))
+      center_x = Number($("#newPost .smile .#{side}  .iris").attr( "cx" ))
+      center_y = Number($("#newPost .smile .#{side} .iris").attr( "cy" ))
+      eye_x = Number($("#newPost .smile .#{side} .ball").attr( "cx" ))
+      eye_y = Number($("#newPost .smile .#{side} .ball").attr( "cy" ))
       dist =  Math.sqrt( Math.pow( center_x - eye_x + x , 2 ) + Math.pow( center_y - eye_y + y, 2 ) )
-      max_dist =  Math.abs( Number($(".eyes .#{side} .ball").attr( "r" )) - Number($(".eyes .#{side} .center .iris").attr("r") ))
+      max_dist =  Math.abs( Number($("#newPost .smile .#{side} .ball").attr( "r" )) - Number($("#newPost .smile .#{side} .iris").attr("r") ))
       if dist <= max_dist
-        $(".eyes .#{side} .center *").each (idx, el) -> 
+        $("#newPost .smile .#{side} .center *").each (idx, el) -> 
           $(el).attr 
             cx: center_x + x 
             cy: center_y + y 

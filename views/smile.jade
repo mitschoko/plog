@@ -4,14 +4,17 @@ svg.smile( xmlns="http://www.w3.org/2000/svg", version="1.1" )
     g.eyes
       g.left
         circle.ball( r=0.1 , cx=0.33333333, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
-        g.center
-          circle.iris(  r=0.05, cx=0.33333333, cy=0.33333333, fill="#000000", stroke-width=0.01, stroke="black" )
-          circle.pupil( r=0.02, cx=0.33333333, cy=0.33333333, fill="black" )
+        g.center 
+          - var left = ( typeof smile !== 'undefined' && smile.leftEye ) ||  { "x": 0.33333333, "y": 0.33333333, "fill": "#000000" } ; 
+          circle.iris(  r=0.05, cx=left.x, cy=left.y, fill=left.fill, stroke-width=0.01, stroke="black" )
+          circle.pupil( r=0.02, cx=left.x, cy=left.y, fill="black" )
       g.right
         circle.ball( r=0.1, cx=0.66666666, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
         g.center
-          circle.iris(  r=0.05 , cx=0.66666666 , cy=0.33333333, fill="#000000", stroke-width=0.01 , stroke="black" )
-          circle.pupil( r=0.02 , cx=0.66666666, cy=0.33333333, fill="black" )
+          - var right = ( typeof smile !== 'undefined' && smile.rightEye ) || { "x": 0.66666666, "y": 0.33333333, "fill": "#000000" } ; 
+          circle.iris(  r=0.05 , cx=right.x , cy=right.y, fill=right.fill, stroke-width=0.01 , stroke="black" )
+          circle.pupil( r=0.02 , cx=right.x, cy=right.y, fill="black" )
     g.mouth
-      path.outline( d="M 0.1,0.6 C 0.33333333,0.9 0.66666666,0.9 0.9,0.6 L 0.9,0.6 C 0.66666666,0.6 0.33333333,0.6 0.1,0.6 z", fill="white", stroke="black", stroke-width=0.02 )
+      - var outline = ( typeof smile !== 'undefined' && smile.mouth && smile.mouth.outline ) || "M 0.1,0.6 C 0.33333333,0.9 0.66666666,0.9 0.9,0.6 L 0.9,0.6 C 0.66666666,0.6 0.33333333,0.6 0.1,0.6 z";
+      path.outline( d=outline , fill="white", stroke="black", stroke-width=0.02 )
 
