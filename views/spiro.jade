@@ -6,7 +6,7 @@ html
     script(type='text/javascript', src='/javascripts/jquery.min.js')
   body
    svg.spiro
-     - var scale = 100 ||  (typeof scale !== 'undefined' && scale ) || 100 ;
+     - var scale =  (typeof scale !== 'undefined' && scale ) || 300 ;
      g.rect( x=0, y=0, width=scale, height=scale, fill="#001A13" ) 
      g.main( transform="scale( " + scale + " ) translate( 1, 1 )" );
        polyline( points="", stroke="black", stroke-width= 1 / scale, fill="none" )
