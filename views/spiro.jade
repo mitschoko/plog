@@ -1,0 +1,36 @@
+doctype 5
+html
+  head
+    title SPiRO
+    link(rel='stylesheet', href='/stylesheets/style.css') 
+    script(type='text/javascript', src='/javascripts/jquery.min.js')
+  body
+   svg.spiro
+     - var scale = 100 ||  (typeof scale !== 'undefined' && scale ) || 100 ;
+     g.rect( x=0, y=0, width=scale, height=scale, fill="#001A13" ) 
+     g.main( transform="scale( " + scale + " ) translate( 1, 1 )" );
+       polyline( points="", stroke="black", stroke-width= 1 / scale, fill="none" )
+
+    #parameters.controlCollection
+      input#r1( type="range", min=0, max=10000 )
+      input#r2( type="range", min=0, max=10000 )
+      input#alpha( type="range", min=1, max=100 )
+      input#d( type="range", min= 1, max= 360 )
+      input#t( type="range", min=1, max=3600 )
+    :coffeescript
+      $("#parameters input").change ->
+        parameters = {}
+        $("#parameters input").each (idx, para) ->
+          parameters[para.id] =  Number( $( para ).val() )
+        r1 =  parameters["r1"] / 10000
+        r2 = ( 1 - r1 ) * (  parameters["r2"] / 10000 )
+        d =  ( parameters["d"] / 360) * 2 * Math.PI
+        alpha = parameters["alpha"] / 10
+        t = parameters["t"]
+        points = ""
+        for i in [0...t]
+          pos =  i * d * 2 * Math.PI
+          x = r1 * Math.sin(  pos ) + r2 * Math.sin( alpha * pos ) 
+          y = r1 * Math.cos(  pos ) + r2 * Math.cos( alpha * pos ) 
+          points += "#{x},#{y} "
+        $(".spiro .main polyline").attr( "points", points )

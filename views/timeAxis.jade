@@ -1,0 +1,34 @@
+#posts
+  - var last_year = ""
+  - var last_date = ""
+  - var last_month = ""
+  - var last_day = ""
+  - var last_hour = ""
+  - var last_minute = ""
+  - var i = 0
+  - while( i < posts.length )
+    - var post = posts[i]
+    - var time = (post.value && post.value.time && new Date(post.value.time) ) || new Date( post.time );
+    - var year = time.getUTCFullYear()
+    - if ( year !== last_year )
+      - last_year = year
+    - var month = time.getUTCMonth()
+    - if ( month !== last_month )
+      - last_month = month
+    - var date = time.getUTCDate()  
+    - if ( date !== last_date )
+      - last_date = date
+      h1.day= date + "." + ( month + 1 ) + "." + year
+    - var day =  time.getUTCDay()
+    - if ( day !== last_day )
+      - last_day = day
+    - var hour = time.getUTCHours()
+    - if ( hour !== last_hour )
+      - last_hour = hour
+    - var minute = time.getUTCMinutes()
+    - if ( minute !== last_minute )
+      - last_minute = minute
+      h4.hour= hour + " : " +  minute
+    include post 
+    div( class="clearfix year#{ year } month#{ month } date#{ date } day#{ day } hour#{hour} minute#{ minute }" )   
+    - ++i

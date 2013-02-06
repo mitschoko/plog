@@ -102,7 +102,7 @@ app.get '/', (req, res) ->
   session = get_session( req )
   user = if session?.user? then session.user else undefined
   blog_db.view 'blog/byTime',
-    limit: 5
+    limit: 100
     descending: true  
     ,( err, data ) ->
       console.log err if err?
@@ -117,6 +117,11 @@ app.get '/post/:id', ( req, res ) ->
     console.log err if err?
     res.render "post", 
       post: data
+
+
+app.get '/spiro', ( req, res ) ->
+  res.render "spiro",
+    scale: 500
 
 app.post '/post', ( req, res ) ->
   session = get_session( req )

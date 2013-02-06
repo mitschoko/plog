@@ -7,6 +7,10 @@ html
     script(type='text/javascript', src='/faye.js')
     :coffeescript
       $(document).ready ->
+        window.resizeSimles = ( x ) ->
+          $("svg.smile .main").attr "transform", "scale( #{ x })"
+        window.silent = ->
+          $(".speak").toggle( "unused" )      
         faye = new Faye.Client "/faye" 
         faye.subscribe "/update/posts", ( msg ) ->
           jQuery.ajax
@@ -38,7 +42,4 @@ html
         .postControls
           button#saySomething Speak!
           button#sendPost Commit 
-
-    #posts
-      each post in posts
-        include post
+    include timeAxis   
