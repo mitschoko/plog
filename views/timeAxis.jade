@@ -1,4 +1,14 @@
-#posts
+
+:coffeescript
+  $(document).ready ->
+    timeline = yes
+    $("button.toggle").click ->
+      $("#posts.timeline").toggleClass("days")
+      silent()
+      timeline = not timeline
+      resizeSmiles if timeline then 300 else 40
+#posts.timeline
+  button.toggle Timeline or Days        
   - var last_year = ""
   - var last_date = ""
   - var last_month = ""
@@ -9,26 +19,32 @@
   - while( i < posts.length )
     - var post = posts[i]
     - var time = (post.value && post.value.time && new Date(post.value.time) ) || new Date( post.time );
+    - var changes = ""
     - var year = time.getUTCFullYear()
     - if ( year !== last_year )
+      - changes += " year"
       - last_year = year
     - var month = time.getUTCMonth()
     - if ( month !== last_month )
+      - changes += " month"
       - last_month = month
     - var date = time.getUTCDate()  
     - if ( date !== last_date )
       - last_date = date
-      h1.day= date + "." + ( month + 1 ) + "." + year
+      h2.date= date + "." + ( month + 1 ) + "." + year
     - var day =  time.getUTCDay()
     - if ( day !== last_day )
+      - changes += " day"
       - last_day = day
     - var hour = time.getUTCHours()
     - if ( hour !== last_hour )
+      - changes += " hour"
       - last_hour = hour
     - var minute = time.getUTCMinutes()
     - if ( minute !== last_minute )
+      - changes += " minute"
       - last_minute = minute
       h4.hour= hour + " : " +  minute
     include post 
-    div( class="clearfix year#{ year } month#{ month } date#{ date } day#{ day } hour#{hour} minute#{ minute }" )   
+    div( class="clearfix " + changes )   
     - ++i

@@ -7,7 +7,7 @@ html
     script(type='text/javascript', src='/faye.js')
     :coffeescript
       $(document).ready ->
-        window.resizeSimles = ( x ) ->
+        window.resizeSmiles = ( x ) ->
           $("svg.smile .main").attr "transform", "scale( #{ x })"
         window.silent = ->
           $(".speak").toggle( "unused" )      

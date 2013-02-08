@@ -121,7 +121,7 @@ app.get '/post/:id', ( req, res ) ->
 
 app.get '/spiro', ( req, res ) ->
   res.render "spiro",
-    scale: 500
+    scale: 300
 
 app.post '/post', ( req, res ) ->
   session = get_session( req )
