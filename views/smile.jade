@@ -1,4 +1,5 @@
 svg.smile( xmlns="http://www.w3.org/2000/svg", version="1.1" )
+  rect( width=300, height=300, fill="#FFF" )
   g.main( transform="scale( 300 )" )
     circle.head( r=0.48, cx=0.5, cy=0.5, stroke="none", fill="yellow", stroke="black", stroke-width=0.03 )
     g.eyes
@@ -17,4 +18,4 @@ svg.smile( xmlns="http://www.w3.org/2000/svg", version="1.1" )
     g.mouth
       - var outline = ( typeof smile !== 'undefined' && smile.mouth && smile.mouth.outline ) || "M 0.1,0.6 C 0.33333333,0.9 0.66666666,0.9 0.9,0.6 L 0.9,0.6 C 0.66666666,0.6 0.33333333,0.6 0.1,0.6 z";
       path.outline( d=outline , fill="white", stroke="black", stroke-width=0.02 )
-
+    g.hair

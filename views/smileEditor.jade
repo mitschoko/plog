@@ -1,8 +1,14 @@
 #EditControl
   .controls
+    span Hair
+    .controlCollection
+      .controlCollection#hairParts
+      button#drawHair More Hair
+      input#hairColor( type = "color" )
+      input#styleHair( type="checkbox", checked ) Style that Smile
     span Eyes
     .controlCollection
-      label( for="editEyeColor" ) Color
+      label( for="changeEyeColor" ) Color
       input#changeEyeColor( type="color" )
       br
       label( for="editLeftEye") left
@@ -40,7 +46,43 @@ script( type="text/javascript", src="/javascripts/PathControl.js" )
     dragging = undefined
 
     $(".eyes").css "pointer-events", "all"
+    HairPolygons = []
 
+
+
+    $("#hairColor").change ->
+      val =  $("#hairColor").val()
+      for hair in HairPolygons
+        $(hair.element).attr "fill", val 
+    $("#styleHair").change ->
+      if $("#styleHair:checked").length == 1
+        for hair in HairPolygons
+          hair.showEdit()
+      else 
+        for hair in HairPolygons
+          hair.hideEdit()
+    $("#drawHair").click ->
+      tstamp = new Date().valueOf()
+      poly = new PolygonDraw( "#newPost .smile .hair", 300 )
+      poly.id = "hairEdit#{tstamp}"
+      $(poly.element).attr "id", "hair#{tstamp}"
+      HairPolygons.push poly
+      $("#hairParts").children().removeClass('choosen')
+      $("#hairParts").append """<div id='hairEdit#{ tstamp }' class='hairEditChooser choosen'>
+          <span>Edit #{ tstamp }</span>
+        </div>"""
+      $("#hairParts .choosen").click -> 
+        $(@).siblings().removeClass( "choosen" )
+        $(@).toggleClass("choosen") 
+    $("#newPost .smile .main").dblclick  ->
+      choosen = $("#hairParts .choosen")
+      if choosen.length is 1
+        choosen = choosen.first()
+        poly = HairPolygons.filter ( item ) -> $(item).attr("id") is $(choosen).attr("id")
+        console.log( "#{event.clientX},#{event.clientY}" )
+        console.log event 
+        poly[0]?.add( event.offsetX, event.offsetY )
+ 
     moveEye = ( side, x, y ) ->
       center_x = Number($("#newPost .smile .#{side}  .iris").attr( "cx" ))
       center_y = Number($("#newPost .smile .#{side} .iris").attr( "cy" ))

@@ -18,6 +18,10 @@ header:hover {
   height: 50px;
 }
 
+.choosen {
+  background-color: #FC0;
+}
+
 #logo {
  float: right;
 }

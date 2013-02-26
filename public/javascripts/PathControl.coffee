@@ -11,6 +11,17 @@ CP = (  x, y ) ->
   obj.setAttributeNS(null, "fill", "red")
   obj
 
+
+Polygon = (  stroke, swidth, fill ) ->
+  obj = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  obj.setAttributeNS(null, "stroke", stroke)
+  obj.setAttributeNS(null, "stroke-width", swidth)
+  obj.setAttributeNS(null, "fill", fill)
+  obj.setAttributeNS(null, "points", " ")
+  obj
+
+
+
 class PathElement
   constructor: ( @parent, data ) ->
     @control = ""
@@ -19,6 +30,7 @@ class PathElement
       @handle =  CP( Number(c[0]), Number(c[1])  ) 
       $(@parent.visual).append @handle
       $(@handle).mouseover =>
+        event.preventDefault()
         $(@handle).attr 
           r: 0.04
         @last =
@@ -26,10 +38,12 @@ class PathElement
           y: 0   
         @dragging = off
       $(@handle).mousedown =>
+        event.preventDefault()
         @last.x = event.clientX
         @last.y = event.clientY
         @dragging = on
       $(@handle).mousemove =>
+        event.preventDefault()
         if @dragging
           now = 
             x: event.clientX
@@ -49,6 +63,10 @@ class PathElement
         "#{$(@handle).attr('cx')},#{$(@handle).attr('cy')}"
       else
         @control
+  translate: ( dx, dy ) ->
+   $(@handle).attr
+     cx: Number($(@handle).attr('cx')) + dx / @parent.scale
+     cy: Number($(@handle).attr('cy')) + dy / @parent.scale
 
 class PathControl
   constructor: ( @element, @scale ) ->
@@ -59,4 +77,44 @@ class PathControl
   redraw: ->
     $(@element).attr "d", (element.read() for element in  @data).join(" ")
 
+class PolygonDraw
+  constructor: (  @visual, @scale ) ->
+    @element = Polygon("#000000", 3 /  @scale,  "#FFFFFF" )
+    @last = 
+      x: 0
+      y: 0
+    $(@visual).append( @element )
+    @points = []
+    @dragging = off
+    $(@element).mousedown (evt) =>
+      evt.preventDefault()
+      @last.x = evt.clientX
+      @last.y = evt.clientY
+      @dragging = on
+    $(@element).mousemove (evt) =>
+      evt.preventDefault()
+      if @dragging 
+        @translate( evt.clientX - @last.x,  evt.clientY  - @last.y)
+        @last.x = evt.clientX
+        @last.y = evt.clientY
+    $(@element).mouseup (evt) =>
+      evt.preventDefault()
+      @dragging = off
+  redraw: ->
+    $(@element).attr "points", (element.read() for element in  @points).join(" ")
+  add: (x, y) -> 
+    @points.push new PathElement( @, "#{ x / @scale },#{ y / @scale }" )
+    @redraw()
+  translate: ( dx, dy ) ->
+    for point in @points
+      point.translate( dx, dy )
+    @redraw()
+  showEdit: ->
+    for point in @points
+      $(point.handle).show()
+  hideEdit: ->
+    for point in @points
+      $(point.handle).hide()
+
 window.PathControl = PathControl
+window.PolygonDraw = PolygonDraw
