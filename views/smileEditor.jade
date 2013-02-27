@@ -33,6 +33,8 @@ script( type="text/javascript", src="/javascripts/PathControl.js" )
         fill: $("#newPost .smile .right .iris").attr("fill")
       mouth:
         outline: $("#newPost .smile .outline").attr( "d" )
+      hair: ( {"points": $(i).attr("points"), "fill": $(i).attr("fill")} for i in  $("#newPost .smile .hair polygon") )
+
   $(document).ready ->
     $("#changeEyeColor").change ->
       $("#newPost .smile .left .iris" ).attr "fill", $("#changeEyeColor").val() if $("#editLeftEye:checked").length isnt 0
@@ -47,8 +49,6 @@ script( type="text/javascript", src="/javascripts/PathControl.js" )
 
     $(".eyes").css "pointer-events", "all"
     HairPolygons = []
-
-
 
     $("#hairColor").change ->
       val =  $("#hairColor").val()
@@ -74,7 +74,7 @@ script( type="text/javascript", src="/javascripts/PathControl.js" )
       $("#hairParts .choosen").click -> 
         $(@).siblings().removeClass( "choosen" )
         $(@).toggleClass("choosen") 
-    $("#newPost .smile .main").dblclick  ->
+    $("#newPost .smile .surface").dblclick  ->
       choosen = $("#hairParts .choosen")
       if choosen.length is 1
         choosen = choosen.first()
@@ -108,7 +108,4 @@ script( type="text/javascript", src="/javascripts/PathControl.js" )
         moveEye "right", dx, dy if $("#editRightEye:checked").length isnt 0
       lastX = event.clientX
       lastY = event.clientY
-    $(".eyes").bind "mouseout mouseup", -> movingEye = false 
-
-
-   
+    $(".eyes").bind "mouseout mouseup", -> movingEye = false    

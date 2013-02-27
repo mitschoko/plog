@@ -25,7 +25,7 @@ Polygon = (  stroke, swidth, fill ) ->
 class PathElement
   constructor: ( @parent, data ) ->
     @control = ""
-    if data.match /^\d(\.\d*)?,\d(\.\d*)?$/
+    if data.match /^\-?\d(\.\d*)?,\-?\d(\.\d*)?$/
       c = data.split(",")      
       @handle =  CP( Number(c[0]), Number(c[1])  ) 
       $(@parent.visual).append @handle
@@ -97,13 +97,13 @@ class PolygonDraw
         @translate( evt.clientX - @last.x,  evt.clientY  - @last.y)
         @last.x = evt.clientX
         @last.y = evt.clientY
-    $(@element).mouseup (evt) =>
+    $(@element).bind "mouseout mouseup", (evt) =>
       evt.preventDefault()
       @dragging = off
   redraw: ->
     $(@element).attr "points", (element.read() for element in  @points).join(" ")
   add: (x, y) -> 
-    @points.push new PathElement( @, "#{ x / @scale },#{ y / @scale }" )
+    @points.push new PathElement( @, "#{ (x - 0.25 * @scale)  / @scale },#{ (y - 0.25 * @scale) / @scale }" )
     @redraw()
   translate: ( dx, dy ) ->
     for point in @points

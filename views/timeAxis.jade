@@ -1,4 +1,3 @@
-
 :coffeescript
   $(document).ready ->
     timeline = yes
@@ -7,8 +6,8 @@
       silent()
       timeline = not timeline
       resizeSmiles if timeline then 300 else 40
+button.toggle  Switch Views
 #posts.timeline
-  button.toggle Timeline or Days        
   - var last_year = ""
   - var last_date = ""
   - var last_month = ""
@@ -16,7 +15,7 @@
   - var last_hour = ""
   - var last_minute = ""
   - var i = 0
-  - while( i < posts.length )
+  - while  ( i < posts.length )
     - var post = posts[i]
     - var time = (post.value && post.value.time && new Date(post.value.time) ) || new Date( post.time );
     - var changes = ""

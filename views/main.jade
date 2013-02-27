@@ -8,7 +8,7 @@ html
     :coffeescript
       $(document).ready ->
         window.resizeSmiles = ( x ) ->
-          $("svg.smile .main").attr "transform", "scale( #{ x })"
+          $("svg.smile .main").attr "transform", "scale( #{ x } )"
         window.silent = ->
           $(".speak").toggle( "unused" )      
         faye = new Faye.Client "/faye" 
@@ -19,7 +19,7 @@ html
             success: ( data ) ->
               $("#posts").prepend data
               $("#newPost .bubble").val "" 
-              $("#newPost .speak").addClass("unused")
+              $("#newPost .speak").addClass( "unused" )
         $("#saySomething").click -> $("#newPost .speak").toggleClass( "unused" )
         $("#sendPost").click ->
           smile = saveSmile()
@@ -33,13 +33,13 @@ html
     include head 
     -if ( user && user.is_author )
       #newPost.post
-        include smileEditor
         include smile
         #postText.speak.unused
           svg.arrow
             polyline( stroke="black", stroke-width=2, fill="white", points="63,40 0,0 63,60") 
           textarea.bubble
         .postControls
+          include smileEditor
           button#saySomething Speak!
-          button#sendPost Commit 
-    include timeAxis   
+          button#sendPost Commit
+    include timeAxis

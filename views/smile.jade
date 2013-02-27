@@ -1,6 +1,7 @@
 svg.smile( xmlns="http://www.w3.org/2000/svg", version="1.1" )
-  rect( width=300, height=300, fill="#FFF" )
-  g.main( transform="scale( 300 )" )
+  - var scale = (typeof scale !== 'undefined' && scale ) || 300;
+  rect.surface( width= scale * 1.5 , height= scale * 1.5, fill="#FFF" )
+  g.main( transform="translate( " + scale * 0.25 + ", " + scale * 0.25 + " ) scale( " + scale + " )" )
     circle.head( r=0.48, cx=0.5, cy=0.5, stroke="none", fill="yellow", stroke="black", stroke-width=0.03 )
     g.eyes
       g.left
@@ -19,3 +20,6 @@ svg.smile( xmlns="http://www.w3.org/2000/svg", version="1.1" )
       - var outline = ( typeof smile !== 'undefined' && smile.mouth && smile.mouth.outline ) || "M 0.1,0.6 C 0.33333333,0.9 0.66666666,0.9 0.9,0.6 L 0.9,0.6 C 0.66666666,0.6 0.33333333,0.6 0.1,0.6 z";
       path.outline( d=outline , fill="white", stroke="black", stroke-width=0.02 )
     g.hair
+      - var hairparts = ( typeof smile  !== 'undefined' && smile.hair ) || []
+      - for  hair in hairparts
+        polygon( fill=hair.fill, points=hair.points, stroke-width=0.01, stroke="black" )          
