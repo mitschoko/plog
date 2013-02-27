@@ -33,13 +33,12 @@ html
     include head 
     -if ( user && user.is_author )
       #newPost.post
-        include smile
+        include smileEditor
         #postText.speak.unused
           svg.arrow
             polyline( stroke="black", stroke-width=2, fill="white", points="63,40 0,0 63,60") 
           textarea.bubble
         .postControls
-          include smileEditor
           button#saySomething Speak!
           button#sendPost Commit
     include timeAxis

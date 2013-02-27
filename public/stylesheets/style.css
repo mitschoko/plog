@@ -2,6 +2,19 @@ body {
   padding: 50px;
   font: 14px Volkorn, Helvetica, Arial, sans-serif; }
 
+.toolbox {
+  boder: 3px solid black;
+  margin: 5px 5px 5px 5px;
+  padding: 2px 2px;
+}
+
+.tool {
+  border: 1px dashed black;
+  background: white;
+}
+.tool.inuse {
+  background: yellow;
+}
 header {
   position: fixed;
   background-image: url(/images/muster.png);
@@ -46,6 +59,10 @@ a {
   color: #00B7FF; 
 }
 
+#SmileEditor {
+  width: 450px;
+  height: 450px;
+}
 
 #EditControl {
   position: relative;

@@ -1,111 +1,156 @@
-#EditControl
-  .controls
-    span Hair
-    .controlCollection
-      .controlCollection#hairParts
-      button#drawHair More Hair
-      input#hairColor( type = "color" )
-      input#styleHair( type="checkbox", checked ) Style that Smile
-    span Eyes
-    .controlCollection
-      label( for="changeEyeColor" ) Color
-      input#changeEyeColor( type="color" )
-      br
-      label( for="editLeftEye") left
-      input#editLeftEye( type="checkbox", checked )
-      label( for="editRightEye") right
-      input#editRightEye( type="checkbox", checked )
-    span Mouth
-    .controlCollection
-      button#toggleControlPoints Edit
-  .unfolder Edit
-script( type="text/javascript", src="/javascripts/PathControl.js" )
-:coffeescript
-  window.saveSmile = ( context, data ) ->
-    data = 
-      leftEye:
-        x: $("#newPost .smile .left .iris").attr("cx")
-        y: $("#newPost .smile .left .iris").attr("cy")
-        fill: $("#newPost .smile .left .iris").attr("fill")
-      rightEye:         
-        x: $("#newPost .smile .right .iris").attr("cx")
-        y: $("#newPost .smile .right .iris").attr("cy")
-        fill: $("#newPost .smile .right .iris").attr("fill")
-      mouth:
-        outline: $("#newPost .smile .outline").attr( "d" )
-      hair: ( {"points": $(i).attr("points"), "fill": $(i).attr("fill")} for i in  $("#newPost .smile .hair polygon") )
+- var scale = (typeof scale !== 'undefined' && scale ) || 300;
+input#SmileEditScale(type="number",value="300")= scale
+svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
+  rect.surface( width= scale * 1.5 , height= scale * 1.5, fill="#FFF" )
+  g#SmileEditorMainTransform.main( transform="translate( " + scale * 0.25 + ", " + scale * 0.25 + " ) scale( " + scale + " )" )
+    circle.head( r=0.48, cx=0.5, cy=0.5, stroke="none", fill="yellow", stroke="black", stroke-width=0.03 )
+    g.eyes
+      g.left
+        circle#SmileEditorLeftEyeBall.ball( r=0.1 , cx=0.33333333, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
+        g.center 
+          - var left = ( typeof smile !== 'undefined' && smile.leftEye ) ||  { "x": 0.33333333, "y": 0.33333333, "fill": "#000000" } ; 
+          circle#SmileEditorLeftIris.iris( onmousedown="SmileEditEyeMouseDown( evt ); SmileEditColorize( this );", onmousemove="SmileEditEyeMove( evt );", onmouseout="SmileEditReleaseEye( evt );", onmouseup="SmileEditReleaseEye();",  r=0.05, cx=left.x, cy=left.y, fill=left.fill, stroke-width=0.01, stroke="black" )
+          circle#SmileEditorLeftPupil.pupil( onmousedown="SmileEditEyeMouseDown( evt );", onmousemove="SmileEditEyeMove( evt );", onmouseup="SmileEditReleaseEye(evt);",  r=0.02, cx=left.x, cy=left.y, fill="black" )
+      g.right
+        circle#SmileEditorRightEyeBall.ball( r=0.1, cx=0.66666666, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
+        g.center
+          - var right = ( typeof smile !== 'undefined' && smile.rightEye ) || { "x": 0.66666666, "y": 0.33333333, "fill": "#000000" } ; 
+          circle#SmileEditorRightIris.iris(  onmousedown="SmileEditEyeMouseDown( evt ); SmileEditColorize( this );", onmousemove="SmileEditEyeMove( evt );", onmouseout="SmileEditReleaseEye( evt );", onmouseup="SmileEditReleaseEye( evt );",   r=0.05 , cx=right.x , cy=right.y, fill=right.fill, stroke-width=0.01 , stroke="black" )
+          circle#SmileEditorRightPupil.pupil(  onmousedown="SmileEditEyeMouseDown( evt );", onmousemove="SmileEditEyeMove( evt );",  onmouseup="SmileEditReleaseEye( evt );", r=0.02 , cx=right.x, cy=right.y, fill="black" )
+    g.mouth
+      - var outline = ( typeof smile !== 'undefined' && smile.mouth && smile.mouth.outline ) || "M 0.1,0.6 C 0.33333333,0.9 0.66666666,0.9 0.9,0.6 L 0.9,0.6 C 0.66666666,0.6 0.33333333,0.6 0.1,0.6 z";
+      path#SmileEditorMouthOutline.outline( d=outline , fill="white", stroke="black", stroke-width=0.02 )
+    g#SmileEditorHairGroup.hair
+      - var hairparts = ( typeof smile  !== 'undefined' && smile.hair ) || []
+      - for  hair in hairparts
+        polygon( fill=hair.fill, points=hair.points, stroke-width=0.01, stroke="black" )        
 
-  $(document).ready ->
-    $("#changeEyeColor").change ->
-      $("#newPost .smile .left .iris" ).attr "fill", $("#changeEyeColor").val() if $("#editLeftEye:checked").length isnt 0
-      $("#newPost .smile .right .iris").attr "fill", $("#changeEyeColor").val() if $("#editRightEye:checked").length isnt 0
-    MouthOutlineControl = new PathControl("#newPost .smile .outline", 300)
-    $(MouthOutlineControl.visual).hide()
-    $("#toggleControlPoints").click -> $(MouthOutlineControl.visual).toggle()
+
+#SmileEditorToolbox.toolbox
+  #colorizeSmileEdit.tool Colorize
+  input#colorizeColorSmileEdit( type="color")   
+  #moveSmileEdit.tool Move
+  #hairSmileEdit.tool Hair
+  #mouthSmileEdit.tool Smile
   
-    lastX = undefined
-    lastY = undefined
-    dragging = undefined
 
-    $(".eyes").css "pointer-events", "all"
-    HairPolygons = []
+:coffeescript
+  $(document).ready ->
+    ###
+      Save Command
+    ###
+    window.saveSmile = ->
+      data = 
+        leftEye:
+          x: $("#SmileEditorLeftPupil").attr("cx")
+          y: $("#SmileEditorLeftPupil").attr("cy")
+          fill: $("#SmileEditorLeftIris").attr("fill")
+        rightEye:         
+          x: $("#SmileEditorRightPupil").attr("cx")
+          y: $("#SmileEditorRightPupil").attr("cy")
+          fill: $("#SmileEditorRightIris").attr("fill")
+        mouth:
+          outline: $("#SmileEditorMouthOutline").attr( "d" )
+        hair: ( {"points": $(polygon).attr("points"), "fill": $(polygon).attr("fill")} for polygon in  $("#SmileEditorHairGroup polygon") )
+    ###
+     setup and keep track of scale
+    ### 
+    scale = Number($("#SmileEditScale").val())
+    $("#SmileEditScale").change -> 
+      scale = Number($("#SmileEditScale").val())
+      $("#SmileEditorMainTransform").attr
+        transform:  "translate( #{ scale * 0.25 }, #{  scale * 0.25 } ) scale( #{ scale } )" 
+      console.log scale
+    ###
+     definiton of tools
+    ### 
+    tool = off
+    tools = 
+      colorize: "#colorizeSmileEdit"
+      move: "#moveSmileEdit"
+      hair: "#hairSmileEdit"
+      mouth: "#mouthSmileEdit"
+    ###
+     disable tool
+    ###
+    disableTool = -> 
+      $(".tool.inuse").removeClass("inuse")
+      tool = off
+    ###
+     enable a given tool 
+      will disable tool by default
+    ###
+    enableTool = ( descriptor ) ->
+      disableTool() 
+      if tools[ descriptor ]?
+        tool = descriptor
+        console.log "Tool: #{tool}"
+        $(tools[descriptor]).addClass( "inuse" )
+    ###
+     link interface to tools
+    ###
+    for descriptor, selector of tools
+      do( descriptor, selector ) ->
+        $(selector).click -> enableTool( descriptor )
+    $("#colorizeColorSmileEdit").change -> enableTool( "colorize" )
 
-    $("#hairColor").change ->
-      val =  $("#hairColor").val()
-      for hair in HairPolygons
-        $(hair.element).attr "fill", val 
-    $("#styleHair").change ->
-      if $("#styleHair:checked").length == 1
-        for hair in HairPolygons
-          hair.showEdit()
-      else 
-        for hair in HairPolygons
-          hair.hideEdit()
-    $("#drawHair").click ->
-      tstamp = new Date().valueOf()
-      poly = new PolygonDraw( "#newPost .smile .hair", 300 )
-      poly.id = "hairEdit#{tstamp}"
-      $(poly.element).attr "id", "hair#{tstamp}"
-      HairPolygons.push poly
-      $("#hairParts").children().removeClass('choosen')
-      $("#hairParts").append """<div id='hairEdit#{ tstamp }' class='hairEditChooser choosen'>
-          <span>Edit #{ tstamp }</span>
-        </div>"""
-      $("#hairParts .choosen").click -> 
-        $(@).siblings().removeClass( "choosen" )
-        $(@).toggleClass("choosen") 
-    $("#newPost .smile .surface").dblclick  ->
-      choosen = $("#hairParts .choosen")
-      if choosen.length is 1
-        choosen = choosen.first()
-        poly = HairPolygons.filter ( item ) -> $(item).attr("id") is $(choosen).attr("id")
-        console.log( "#{event.clientX},#{event.clientY}" )
-        console.log event 
-        poly[0]?.add( event.offsetX, event.offsetY )
- 
-    moveEye = ( side, x, y ) ->
-      center_x = Number($("#newPost .smile .#{side}  .iris").attr( "cx" ))
-      center_y = Number($("#newPost .smile .#{side} .iris").attr( "cy" ))
-      eye_x = Number($("#newPost .smile .#{side} .ball").attr( "cx" ))
-      eye_y = Number($("#newPost .smile .#{side} .ball").attr( "cy" ))
-      dist =  Math.sqrt( Math.pow( center_x - eye_x + x , 2 ) + Math.pow( center_y - eye_y + y, 2 ) )
-      max_dist =  Math.abs( Number($("#newPost .smile .#{side} .ball").attr( "r" )) - Number($("#newPost .smile .#{side} .iris").attr("r") ))
-      if dist <= max_dist
-        $("#newPost .smile .#{side} .center *").each (idx, el) -> 
-          $(el).attr 
-            cx: center_x + x 
-            cy: center_y + y 
+    ###
+     linking interface elements for colorize tool
+    ###
+    window.SmileEditColorize = ( element ) -> $( element ).attr "fill", $("#colorizeColorSmileEdit").val() if tool is "colorize" 
+
+
+    ###
+     define variables for keepin track of eye movement
+    ###
     movingEye = false
-    $(".eyes").mousedown ->
-      lastX = event.clientX
-      lastY = event.clientY  
-      movingEye = true
-    $(".eyes").mousemove ->
-      if movingEye
-        dx = (event.clientX - lastX) / 300
-        dy = (event.clientY - lastY) / 300
-        moveEye "left",  dx, dy if $("#editLeftEye:checked").length isnt 0
-        moveEye "right", dx, dy if $("#editRightEye:checked").length isnt 0
-      lastX = event.clientX
-      lastY = event.clientY
-    $(".eyes").bind "mouseout mouseup", -> movingEye = false    
+    lastEye =
+      x: 0
+      y: 0
+
+    ###
+     define dragging routines 
+
+     move eyes
+        takes relative value
+        checks for eye boundries
+    ###
+    moveEyes = (  x, y ) ->
+      center_x = Number($("#SmileEditorRightPupil").attr( "cx" ))
+      center_y = Number($("#SmileEditorRightPupil").attr( "cy" ))
+      eye_x = Number($("#SmileEditorRightEyeBall").attr( "cx" ))
+      eye_y = Number($("#SmileEditorRightEyeBall").attr( "cy" ))
+      dist =  Math.sqrt( Math.pow( center_x - eye_x + x , 2 ) + Math.pow( center_y - eye_y + y, 2 ) )
+      max_dist =  Math.abs( Number($("#SmileEditorRightEyeBall").attr( "r" )) - Number($("#SmileEditorRightPupil").attr("r") ))
+      if dist <= max_dist
+        $("#SmileEditorRightIris,#SmileEditorRightPupil,#SmileEditorLeftIris,#SmileEditorLeftPupil").each (idx, el) -> 
+          $(el).attr 
+            cx: Number($(el).attr("cx")) + x 
+            cy: Number($(el).attr("cy")) + y 
+    ###
+     drag routine
+    ###
+    window.SmileEditEyeMouseDown = ( evt ) ->
+      if tool is "move"
+        evt.preventDefault()
+        lastEye.x = evt.clientX
+        lastEye.y = evt.clientY  
+        movingEye = true
+    ###
+     move routine
+    ###
+    window.SmileEditEyeMove = ( evt ) ->
+      if tool is "move" and movingEye
+        evt.preventDefault()
+        dx = (evt.clientX - lastEye.x) / scale
+        dy = (evt.clientY - lastEye.y) / scale
+        moveEyes( dx, dy )
+        lastEye.x = evt.clientX
+        lastEye.y = evt.clientY
+    ###
+     link dragging to interface
+    ###
+    window.SmileEditReleaseEye = ( evt ) ->
+      evt.preventDefault()
+      movingEye = false
+
