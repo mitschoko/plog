@@ -3,32 +3,19 @@ body {
   font: 14px Volkorn, Helvetica, Arial, sans-serif; }
 
 .toolbox {
-  boder: 3px solid black;
+  border: 3px solid black;
   margin: 5px 5px 5px 5px;
   padding: 2px 2px;
+  display: inline-block;
 }
 
 .tool {
+  width: 50px;
   border: 1px dashed black;
   background: white;
 }
 .tool.inuse {
   background: yellow;
-}
-header {
-  position: fixed;
-  background-image: url(/images/muster.png);
-  border: 1px solid black;
-  width: 100%;
-  height: 2px;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  transition: height 500ms;
-}
-
-header:hover {
-  height: 50px;
 }
 
 .choosen {
@@ -42,6 +29,10 @@ header:hover {
 .smile{
   width: 450px;
   height: 450px;
+}
+
+.navbar-inner {
+  background-image: url(/images/muster.png);
 }
 
 /*
@@ -196,6 +187,7 @@ h2.date {
   width: 63px;
   height: 60px;
 }
-.postControls button {
-  float: left;
+
+.SmileEditControlPoint {
+  pointer-events: all;
 }

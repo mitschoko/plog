@@ -1,6 +1,5 @@
 config.json
 init_config.json
-*.js
 *.swp
 *.swo
 node_modules/

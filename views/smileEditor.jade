@@ -1,38 +1,5 @@
-- var scale = (typeof scale !== 'undefined' && scale ) || 300;
-input#SmileEditScale(type="number",value="300")= scale
-svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
-  rect.surface( width= scale * 1.5 , height= scale * 1.5, fill="#FFF" )
-  g#SmileEditorMainTransform.main( transform="translate( " + scale * 0.25 + ", " + scale * 0.25 + " ) scale( " + scale + " )" )
-    circle.head( r=0.48, cx=0.5, cy=0.5, stroke="none", fill="yellow", stroke="black", stroke-width=0.03 )
-    g.eyes
-      g.left
-        circle#SmileEditorLeftEyeBall.ball( r=0.1 , cx=0.33333333, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
-        g.center 
-          - var left = ( typeof smile !== 'undefined' && smile.leftEye ) ||  { "x": 0.33333333, "y": 0.33333333, "fill": "#000000" } ; 
-          circle#SmileEditorLeftIris.iris( onmousedown="SmileEditEyeMouseDown( evt ); SmileEditColorize( this );", onmousemove="SmileEditEyeMove( evt );", onmouseout="SmileEditReleaseEye( evt );", onmouseup="SmileEditReleaseEye();",  r=0.05, cx=left.x, cy=left.y, fill=left.fill, stroke-width=0.01, stroke="black" )
-          circle#SmileEditorLeftPupil.pupil( onmousedown="SmileEditEyeMouseDown( evt );", onmousemove="SmileEditEyeMove( evt );", onmouseup="SmileEditReleaseEye(evt);",  r=0.02, cx=left.x, cy=left.y, fill="black" )
-      g.right
-        circle#SmileEditorRightEyeBall.ball( r=0.1, cx=0.66666666, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
-        g.center
-          - var right = ( typeof smile !== 'undefined' && smile.rightEye ) || { "x": 0.66666666, "y": 0.33333333, "fill": "#000000" } ; 
-          circle#SmileEditorRightIris.iris(  onmousedown="SmileEditEyeMouseDown( evt ); SmileEditColorize( this );", onmousemove="SmileEditEyeMove( evt );", onmouseout="SmileEditReleaseEye( evt );", onmouseup="SmileEditReleaseEye( evt );",   r=0.05 , cx=right.x , cy=right.y, fill=right.fill, stroke-width=0.01 , stroke="black" )
-          circle#SmileEditorRightPupil.pupil(  onmousedown="SmileEditEyeMouseDown( evt );", onmousemove="SmileEditEyeMove( evt );",  onmouseup="SmileEditReleaseEye( evt );", r=0.02 , cx=right.x, cy=right.y, fill="black" )
-    g.mouth
-      - var outline = ( typeof smile !== 'undefined' && smile.mouth && smile.mouth.outline ) || "M 0.1,0.6 C 0.33333333,0.9 0.66666666,0.9 0.9,0.6 L 0.9,0.6 C 0.66666666,0.6 0.33333333,0.6 0.1,0.6 z";
-      path#SmileEditorMouthOutline.outline( d=outline , fill="white", stroke="black", stroke-width=0.02 )
-    g#SmileEditorHairGroup.hair
-      - var hairparts = ( typeof smile  !== 'undefined' && smile.hair ) || []
-      - for  hair in hairparts
-        polygon( fill=hair.fill, points=hair.points, stroke-width=0.01, stroke="black" )        
+script(type='text/javascript', src='/javascripts/PathControl.js')
 
-
-#SmileEditorToolbox.toolbox
-  #colorizeSmileEdit.tool Colorize
-  input#colorizeColorSmileEdit( type="color")   
-  #moveSmileEdit.tool Move
-  #hairSmileEdit.tool Hair
-  #mouthSmileEdit.tool Smile
-  
 
 :coffeescript
   $(document).ready ->
@@ -41,6 +8,7 @@ svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
     ###
     window.saveSmile = ->
       data = 
+        headcolor: $("#SmileEditorHead").attr("fill")
         leftEye:
           x: $("#SmileEditorLeftPupil").attr("cx")
           y: $("#SmileEditorLeftPupil").attr("cy")
@@ -68,13 +36,12 @@ svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
     tools = 
       colorize: "#colorizeSmileEdit"
       move: "#moveSmileEdit"
-      hair: "#hairSmileEdit"
-      mouth: "#mouthSmileEdit"
+      hair: "#editHairSmileEdit"
     ###
      disable tool
     ###
     disableTool = -> 
-      $(".tool.inuse").removeClass("inuse")
+      $("#SmileEditorToolbox .btn-success").removeClass("btn-success")
       tool = off
     ###
      enable a given tool 
@@ -85,7 +52,13 @@ svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
       if tools[ descriptor ]?
         tool = descriptor
         console.log "Tool: #{tool}"
-        $(tools[descriptor]).addClass( "inuse" )
+        $(tools[descriptor]).addClass( "btn-success" )
+        if tool  is "hair"
+          for idx, hair of SmileEditHairParts
+            hair.showEdit()
+        else
+          for idx, hair of SmileEditHairParts
+            hair.hideEdit()
     ###
      link interface to tools
     ###
@@ -97,8 +70,12 @@ svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
     ###
      linking interface elements for colorize tool
     ###
-    window.SmileEditColorize = ( element ) -> $( element ).attr "fill", $("#colorizeColorSmileEdit").val() if tool is "colorize" 
-
+    window.SmileEditColorize = ( element ) -> 
+      if tool is "colorize"
+        $( element ).attr "fill", $("#colorizeColorSmileEdit").val() 
+        yes
+      else
+        no
 
     ###
      define variables for keepin track of eye movement
@@ -131,16 +108,15 @@ svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
      drag routine
     ###
     window.SmileEditEyeMouseDown = ( evt ) ->
-      if tool is "move"
-        evt.preventDefault()
-        lastEye.x = evt.clientX
-        lastEye.y = evt.clientY  
-        movingEye = true
+      evt.preventDefault()
+      lastEye.x = evt.clientX
+      lastEye.y = evt.clientY  
+      movingEye = true
     ###
      move routine
     ###
     window.SmileEditEyeMove = ( evt ) ->
-      if tool is "move" and movingEye
+      if movingEye
         evt.preventDefault()
         dx = (evt.clientX - lastEye.x) / scale
         dy = (evt.clientY - lastEye.y) / scale
@@ -153,4 +129,66 @@ svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
     window.SmileEditReleaseEye = ( evt ) ->
       evt.preventDefault()
       movingEye = false
+    ###
+     Focus mouth for editing
+    ###
+    MouthPC = new PathControl( "#SmileEditorMouthOutline", scale  )
+    MouthPC.hideEdit()
+    window.SmileEditFocusMouth = =>
+      MouthPC.toggleEdit()
+    true
+    ###
+     add Hair
+    ###
+    window.SmileEditHairParts = []
+    $("#addHairSmileEdit").click ->
+      hair = new PolygonDraw( "#SmileEditorHairGroup", scale, [[0.7,-0.1],[1.0, 0.05], [0.95,0.5],[0.8, 0.1], [0.5, 0.05],[0.2,0.1],[0.15,0.5] ,[0.0, 0.05] ,[0.3,-0.1]] )
+      $(hair.element).click -> SmileEditColorize @
+      SmileEditHairParts.push hair
+      enableTool("hair")
 
+- var scale = (typeof scale !== 'undefined' && scale ) || 300;
+
+
+.container
+  .postControls.row 
+     input#SmileEditScale.span1(type="number",value="300")= scale
+     button#saySomething.btn.span2 Speak!
+     button#sendPost.btn.span2.btn-primary Commit
+  .row 
+     #SmileEditorToolbox.btn-group.span10
+       input#colorizeColorSmileEdit.span1.btn( type="color")   
+       button#moveSmileEdit.span1.btn Move
+       button#addHairSmileEdit.span2.btn.btn-warning Add Hair
+       button#editHairSmileEdit.span1.btn Hair                
+       button#colorizeSmileEdit.span1.btn Color 
+  .row
+    svg#SmileEditor( xmlns="http://www.w3.org/2000/svg", version="1.1" )
+      rect.surface( width= scale * 1.5 , height= scale * 1.5, fill="#FFF" )
+      g#SmileEditorMainTransform.main( transform="translate( " + scale * 0.25 + ", " + scale * 0.25 + " ) scale( " + scale + " )" )
+        - var headcolor = ( typeof smile !== 'undefined' && typeof smile.headcolor !== 'undefined' && smile.headcolor ) || "yellow"
+        circle#SmileEditorHead.head( r=0.48, cx=0.5, cy=0.5, stroke="none", fill=headcolor, stroke="black", stroke-width=0.03, onclick="SmileEditColorize( this );" )
+        g.eyes
+          g.left
+            circle#SmileEditorLeftEyeBall.ball( r=0.1 , cx=0.33333333, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
+            g.center 
+              - var left = ( typeof smile !== 'undefined' && smile.leftEye ) ||  { "x": 0.33333333, "y": 0.33333333, "fill": "#000000" } ; 
+              circle#SmileEditorLeftIris.iris( onmousedown="SmileEditEyeMouseDown( evt ); SmileEditColorize( this );", onmousemove="SmileEditEyeMove( evt );", onmouseout="SmileEditReleaseEye( evt );", onmouseup="SmileEditReleaseEye( evt );",  r=0.05, cx=left.x, cy=left.y, fill=left.fill, stroke-width=0.01, stroke="black" )
+              circle#SmileEditorLeftPupil.pupil( onmousedown="SmileEditEyeMouseDown( evt );", onmousemove="SmileEditEyeMove( evt );", onmouseup="SmileEditReleaseEye(evt);",  r=0.02, cx=left.x, cy=left.y, fill="black" )
+          g.right
+            circle#SmileEditorRightEyeBall.ball( r=0.1, cx=0.66666666, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
+            g.center
+              - var right = ( typeof smile !== 'undefined' && smile.rightEye ) || { "x": 0.66666666, "y": 0.33333333, "fill": "#000000" } ; 
+              circle#SmileEditorRightIris.iris(  onmousedown="SmileEditEyeMouseDown( evt ); SmileEditColorize( this );", onmousemove="SmileEditEyeMove( evt );", onmouseout="SmileEditReleaseEye( evt );", onmouseup="SmileEditReleaseEye( evt );",   r=0.05 , cx=right.x , cy=right.y, fill=right.fill, stroke-width=0.01 , stroke="black" )
+              circle#SmileEditorRightPupil.pupil(  onmousedown="SmileEditEyeMouseDown( evt );", onmousemove="SmileEditEyeMove( evt );",  onmouseup="SmileEditReleaseEye( evt );", r=0.02 , cx=right.x, cy=right.y, fill="black" )
+        g.mouth
+          - var outline = ( typeof smile !== 'undefined' && smile.mouth && smile.mouth.outline ) || "M 0.1,0.6 C 0.33333333,0.9 0.66666666,0.9 0.9,0.6 L 0.9,0.6 C 0.66666666,0.6 0.33333333,0.6 0.1,0.6 z";
+          path#SmileEditorMouthOutline.outline( onclick="SmileEditFocusMouth();",  d=outline , fill="white", stroke="black", stroke-width=0.02 )
+        g#SmileEditorHairGroup.hair
+          - var hairparts = ( typeof smile  !== 'undefined' && smile.hair ) || []
+          - for  hair in hairparts
+            polygon( fill=hair.fill, points=hair.points, stroke-width=0.01, stroke="black" )        
+    #postText.speak.unused
+      svg.arrow
+        polyline( stroke="black", stroke-width=2, fill="white", points="63,40 0,0 63,60") 
+      textarea.bubble

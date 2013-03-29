@@ -9,6 +9,7 @@ CP = (  x, y ) ->
   obj.setAttributeNS(null, "stroke", "white")
   obj.setAttributeNS(null, "stroke-width", 0.01)
   obj.setAttributeNS(null, "fill", "red")
+  obj.setAttribute("class", "SmileEditControlPoint")
   obj
 
 
@@ -74,32 +75,51 @@ class PathControl
     $(@element).parent().append( @visual )
     d = $(@element).attr "d"
     @data = ( new PathElement( @, i ) for i in (d.split(" ")) )
+    @hidden = no
   redraw: ->
     $(@element).attr "d", (element.read() for element in  @data).join(" ")
+  showEdit: ->
+    for point in @data
+      $(point.handle).show()
+    @hidden = no
+  hideEdit: ->
+    for point in @data
+      $(point.handle).hide()
+    @hidden = yes
+  toggleEdit: ->
+    if @hidden
+      @showEdit()
+    else
+      @hideEdit()
 
 class PolygonDraw
-  constructor: (  @visual, @scale ) ->
+  constructor: (  @visual, @scale, initPoints ) ->
     @element = Polygon("#000000", 3 /  @scale,  "#FFFFFF" )
     @last = 
       x: 0
       y: 0
+    @hidden = no
     $(@visual).append( @element )
-    @points = []
     @dragging = off
     $(@element).mousedown (evt) =>
-      evt.preventDefault()
-      @last.x = evt.clientX
-      @last.y = evt.clientY
-      @dragging = on
+      if not @hidden
+        evt.preventDefault()
+        @last.x = evt.clientX
+        @last.y = evt.clientY
+        @dragging = on
     $(@element).mousemove (evt) =>
-      evt.preventDefault()
       if @dragging 
+        evt.preventDefault()
         @translate( evt.clientX - @last.x,  evt.clientY  - @last.y)
         @last.x = evt.clientX
         @last.y = evt.clientY
     $(@element).bind "mouseout mouseup", (evt) =>
       evt.preventDefault()
       @dragging = off
+    if not initPoints?
+      initPoints = []
+    @points = ( new PathElement( @, "#{ point[0] },#{ point[1] }")  for idx, point of initPoints )
+    @redraw() 
   redraw: ->
     $(@element).attr "points", (element.read() for element in  @points).join(" ")
   add: (x, y) -> 
@@ -112,9 +132,16 @@ class PolygonDraw
   showEdit: ->
     for point in @points
       $(point.handle).show()
+    @hidden = no
   hideEdit: ->
     for point in @points
       $(point.handle).hide()
+    @hidden = yes
+  toggleEdit: ->
+    if @hidden
+      @showEdit()
+    else
+      @hideEdit()
 
 window.PathControl = PathControl
 window.PolygonDraw = PolygonDraw

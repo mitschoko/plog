@@ -129,6 +129,7 @@ app.post '/post', ( req, res ) ->
   entry = 
     smile: req.param( "smile" )
     time: Date()
+    user: session.user.name
     block_entry: yes
   blog_db.save entry, ( err, data ) ->
     if err?
@@ -138,7 +139,7 @@ app.post '/post', ( req, res ) ->
 
 
 app.post '/login', (req, res) ->
-  res.redirect '/' if  not req.param("user_data")?.name? or not req.param("user_data")?.pass? 
+  res.redirect '/' if  not req.param("user_data")?.name? 
   user_db.view 'user/byName',
     key: req.param("user_data").name
   , ( err, data ) ->
@@ -146,21 +147,62 @@ app.post '/login', (req, res) ->
       res.redirect '/' 
     else
       md5 = crypto.createHash('md5')
-      md5.update( req.param("user_data").pass )
       md5.update( data[0].value.salt ) 
+      md5.update( req.param("user_data").pass )
       phash = md5.digest 'hex'
       if data[0].value.pass is phash
         current_sessions[ req.signedCookies["connect.sid"] ] =
           user: data[0].value
           last_active: new Date()
-        res.redirect "/"
-      else
-        res.redirect "/"
+      res.redirect "/"
+
 
 app.get '/logout', (req, res ) ->
-   if req.signedCookies["connect.sid"]?
-     delete current_sessions[req.signedCookies["connect.sid"]]
-   res.redirect "/"
+  if req.signedCookies["connect.sid"]?
+    delete current_sessions[req.signedCookies["connect.sid"]]
+  res.redirect "/"
+
+app.get '/check_user/:name.json', (req, res) ->
+  user_db.view 'user/byName',
+    key: req.param("name")
+  , ( err, data ) ->
+    res.json err if err?
+    res.json 
+      available: data.length is 0
+     
+
+app.post '/join', (req, res) ->
+  user_db.view 'user/byName',
+    key: req.param("user_data").name
+  , ( err, data ) ->
+    res.json err if err?
+    if data.length is 0 and req.param("user_data")?.pass1? and req.param("user_data")?.pass2? and req.param("user_data").pass1 is req.param("user_data").pass2 
+      md5 = crypto.createHash('md5')
+      salt = crypto.randomBytes( 64 ).toString()
+      md5.update( salt ) 
+      md5.update( req.param("user_data").pass1 )
+      phash = md5.digest 'hex'
+      user_data = 
+        name: req.param("user_data").name
+        valid_user: yes
+        change_pass: no
+        is_author: yes
+        is_admin: no
+        human: yes
+        pass: phash
+        salt: salt
+      user_db.save  user_data, ( err, data ) ->
+        console.log data
+        user_db.get data.id, ( err, data2 ) ->
+          console.log err
+          console.log data2
+          current_sessions[ req.signedCookies["connect.sid"] ] =
+            user: data2
+            last_active: new Date()
+          res.redirect "/"
+    else
+      res.redirect "/"
+
 
 app.get '/user/:name', (req, res) ->
   session = get_session( req ) 
@@ -182,15 +224,18 @@ app.post '/resetpass', (req, res) ->
   res.redirect '/' if not session
   res.redirect '/' if  not req.param("user_data")?.pass1? or not req.param("user_data")?.pass2? or not req.param("user_data").pass1 is req.param("user_data").pass2 
   md5 = crypto.createHash('md5')
-  md5.update( req.param("user_data").pass1 )
   salt = crypto.randomBytes( 64 ).toString()
   md5.update( salt ) 
+  md5.update( req.param("user_data").pass1 )
   phash = md5.digest 'hex'
   user_db.merge session.user._id , 
     pass: phash
     salt: salt
+    change_pass: no
   , (err, data ) ->
     console.log err if err?
+    session = get_session( req )
+    session.user.change_pass = off
     res.redirect "/"
 
 

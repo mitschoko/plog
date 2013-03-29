@@ -1,12 +1,105 @@
-header
+
+
+.navbar
   #notify
     -if ( notify )
       p= notify
   -if (! user )
-   form( action="/login", method="POST" )
-     input( name="user_data[name]"  )
-     input( type="password", name="user_data[pass]"  ) 
-     input( type="submit" ) Login
+    .navbar-inner
+      a.brand Welcome
+      ul.nav
+        li
+          a.span2( data-target="#JoinField", role="button", data-toggle="modal" ) Join
+          .container
+            #JoinField.modal( role="dialog", data-backdrop="true", aria-labelledby="JoinHeadline", aria-hidden="true", style="display: none;" )
+              .modal-header
+                h1#JoinHeadline Join
+              .modal-body
+                form( action="/join", method="POST" )
+                  input#NewNameInput( name='user_data[name]' )
+                  span#availableUser.label.label-important Username
+                  br
+                  label  Enter new Pass
+                  input#newPass1(  type='password', name='user_data[pass1]' )
+                  br
+                  label  and Again
+                  input#newPass2( type='password', name='user_data[pass2]' )
+                  input.btn( type="submit" ) Join
+              .modal-footer
+                button( type="button", class="close", data-dismiss="modal", aria-hidden="true") close
+        li
+          a( data-target="#LoginField", role="button", data-toggle="modal" ) Login
+          .container
+            #LoginField.modal( role="dialog", data-backdrop="true", aria-labelledby="LoginHeadline", aria-hidden="true", style="display: none;" )
+              .modal-header
+                h1#LoginHeadline Login
+              .modal-body
+                form( action="/login", method="POST" )
+                  input#nameInput.span3( type="text", name="user_data[name]", placeholder="username"  )
+                  input#EnterPass( type="password", name="user_data[pass]", placeholder="password"  ) 
+                  input.btn( type="submit" ) Login
+              .modal-footer
+                button( type="button", class="close", data-dismiss="modal", aria-hidden="true") close
+              
+    :coffeescript
+      interval = off
+      last_val = ""
+      $("#NewNameInput").focus -> interval = setInterval  checkInput, 750
+      $("#NewNameInput").blur  -> clearInterval( interval )
+      checkInput = -> 
+        name = $("#NewNameInput").val()
+        if name.length > 4 
+          return  if name is last_val
+          jQuery.ajax
+            url: "/check_user/#{ name }.json"
+            success: ( data ) ->
+              if data.available
+                $("#availableUser").removeClass("label-important")
+                $("#availableUser").addClass("label-success")
+                $("#claimUser").attr "href",  "/claim_user/#{name}"
+              else
+                $("#availableUser").removeClass("label-success")
+                $("#availableUser").addClass("label-important")   
+        else
+          $("#availableUser").removeClass("label-success")
+          $("#availableUser").addClass("label-important")
+        last_val = name
   -else
-     a( href="/user/" + user.name )= user.name
-   img#logo( src="/images/logo.png")
+    .navbar-inner
+      a.brand( href="/user/" + user.name )= user.name
+      ul.nav
+        li
+          a( data-target="#changePass", role="button", data-toggle="modal") Change Password
+          .container
+            - var cp_style = ( user.change_pass ) ? "display: block;" : "display: none;"; 
+            #changePass.modal( tabindex="-1", role="dialog", data-backdrop="false", aria-labelledby="changePassUserName", aria-hidden="true", style=cp_style )
+              .modal-header
+                h1#changePassUserName Change Password
+                #changePassFeedback
+              .modal-body
+                form( action="/resetpass", method="POST", name='user_data' )
+                  label  Enter new Pass
+                  input#newPass1(  type='password', name='user_data[pass1]' )
+                  br
+                  label  and Again
+                  input#newPass2( type='password', name='user_data[pass2]' )
+                  button#resetPass Reset Password
+              .modal-footer
+                button( type="button", class="close", data-dismiss="modal", aria-hidden="true") close
+        li
+          a( href="/logout" ) Logout
+:coffeescript
+  $(document).ready ->
+    checkpass = ->
+      if $("#newPass1").val() isnt $("#newPass2").val()
+        $("#changePassFeedback").html "Passwords dont match!"
+        $("#resetPass").attr "disabled", true
+      else if  $("#newPass1").val().length < 4  
+        $("#changePassFeedback").html "Passwords to short"
+        $("#resetPass").attr "disabled", true
+      else    
+        $("#changePassFeedback").html ""
+        $("#resetPass").attr "disabled", false
+    $("#resetPass").attr "disabled", true
+    $("#newPass1").on "input", checkpass
+    $("#newPass2").on "input", checkpass

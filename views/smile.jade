@@ -2,7 +2,8 @@ svg.smile( xmlns="http://www.w3.org/2000/svg", version="1.1" )
   - var scale = (typeof scale !== 'undefined' && scale ) || 300;
   rect.surface( width= scale * 1.5 , height= scale * 1.5, fill="#FFF" )
   g.main( transform="translate( " + scale * 0.25 + ", " + scale * 0.25 + " ) scale( " + scale + " )" )
-    circle.head( r=0.48, cx=0.5, cy=0.5, stroke="none", fill="yellow", stroke="black", stroke-width=0.03 )
+    - var headcolor = ( typeof smile !== 'undefined' && typeof smile.headcolor !== 'undefined' && smile.headcolor ) || "yellow"
+    circle.head( r=0.48, cx=0.5, cy=0.5, stroke="none", fill=headcolor, stroke="black", stroke-width=0.03 )
     g.eyes
       g.left
         circle.ball( r=0.1 , cx=0.33333333, cy=0.33333333, stroke="black", stroke-width=0.015, fill="white" )
