@@ -28,6 +28,8 @@ This file might Look like this:
 }
 
 Run 
-coffee init.coffee
+
+ coffee init.coffee
+
 The script will setup a new config.json file and create Databases at the couch server at localhost:5984 using couch_user and couch_pass to Login to the Database. It also creates an admin account named mitschoko with the pass qwertzuiop 
 
