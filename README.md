@@ -6,7 +6,12 @@ A small blogging System written in coffee-script.
 The Service only fully works with Chrome Browsers.
 
 ## Installation
-Install Node and CouchDB
+Install Node and CouchDB.
+
+Run 
+
+ npm install
+
 Create a File called init_config.json
 
 This file might Look like this:
